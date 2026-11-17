@@ -325,6 +325,23 @@ The 20-scenario dummy-data report is available as
 Its captured Swagger response is also available as
 [swagger_ui_output.png](./swagger_ui_output.png).
 
+The additional live Swagger UI run against the isolated dummy-data harness is
+documented in [swagger_live_test_report.pdf](./swagger_live_test_report.pdf).
+The report includes the 20 requested scenarios, observed results, and the
+limits of this test setup. A Swagger UI response capture is available as
+[swagger_live_test_output.png](./swagger_live_test_output.png).
+
+The live Swagger UI checks used `http://127.0.0.1:8002/docs`, an in-memory
+SQLite database, test-only JWTs, and mocked User/Product/inventory responses.
+They exercised successful order creation and lookup, rejected product/address
+cases, authentication and ownership failures, list filters, admin/customer
+status permissions, invalid transitions, eligible and ineligible cancellation,
+and repeated cancellation. These results validate the service routes and
+workflow against dummy dependencies; they do not prove calls to real
+Authentication, User, or Product services or actual external inventory
+restoration. Product-service outage behavior is covered by the automated
+service test, not this Swagger run.
+
 ## Project publication and team updates
 
 No Git repository or remote URL is configured in this workspace. GitHub
