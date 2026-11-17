@@ -1,0 +1,62 @@
+services:
+  order-service:
+    build:
+      context: .
+    environment:
+      APP_ENV: ${APP_ENV:-development}
+      DEBUG: ${DEBUG:-false}
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_USER: ${ORDER_DB_USER:-shopease}
+      DB_PASSWORD: ${DB_PASSWORD:?Set DB_PASSWORD in .env}
+      DB_NAME: ${DB_NAME:-shopease_order_db}
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY:?Set JWT_SECRET_KEY in .env}
+      JWT_ALGORITHM: ${JWT_ALGORITHM:-HS256}
+      AUTH_SERVICE_URL: ${AUTH_SERVICE_URL:-}
+      USER_SERVICE_URL: ${USER_SERVICE_URL:?Set USER_SERVICE_URL in .env}
+      USER_PROFILE_PATH_TEMPLATE: ${USER_PROFILE_PATH_TEMPLATE:-/api/users/{user_id}}
+      USER_ADDRESS_PATH_TEMPLATE: ${USER_ADDRESS_PATH_TEMPLATE:-/api/users/{user_id}/addresses/{address_id}}
+      PRODUCT_SERVICE_URL: ${PRODUCT_SERVICE_URL:?Set PRODUCT_SERVICE_URL in .env}
+      PRODUCT_PATH_TEMPLATE: ${PRODUCT_PATH_TEMPLATE:-/api/products/{product_id}}
+      INVENTORY_RESERVATIONS_PATH: ${INVENTORY_RESERVATIONS_PATH:-/api/inventory/reservations}
+      SERVICE_TIMEOUT_SECONDS: ${SERVICE_TIMEOUT_SECONDS:-5}
+      TAX_RATE: ${TAX_RATE:-0.18}
+      SHIPPING_CHARGE: ${SHIPPING_CHARGE:-50.00}
+    ports:
+      - "${ORDER_SERVICE_PORT:-8000}:8000"
+    depends_on:
+      mysql:
+        condition: service_healthy
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health/ready', timeout=3)"
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    restart: unless-stopped
+
+  mysql:
+    image: mysql:8.0
+    environment:
+      MYSQL_DATABASE: ${DB_NAME:-shopease_order_db}
+      MYSQL_USER: ${ORDER_DB_USER:-shopease}
+      MYSQL_PASSWORD: ${DB_PASSWORD:?Set DB_PASSWORD in .env}
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD:?Set DB_PASSWORD in .env}
+    volumes:
+      - order_mysql_data:/var/lib/mysql
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - mysqladmin ping --host=127.0.0.1 --user=root --password="$${MYSQL_ROOT_PASSWORD}" --silent
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 20s
+    restart: unless-stopped
+
+volumes:
+  order_mysql_data:
